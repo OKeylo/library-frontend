@@ -1,8 +1,13 @@
 "use client";
-import axios from "axios";
 import { useState } from "react";
+import httpClient from "@/http/index";
+import { useAuth } from "@/context/authContext";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const { push } = useRouter();
+  const { setUser } = useAuth();
+
   const [isLogin, setIsLogin] = useState(true);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -43,27 +48,61 @@ export default function Home() {
       return;
     }
 
-    const data = {
-      full_name: name,
-      phone: `+7${phone.replace(/\D/g, "")}`,
-      password: password,
-      birth_date: isLogin ? undefined : birthDate,
+    if (!password) {
+      setError("Введите пароль");
+      return;
+    }
+
+    if (!phone) {
+      setError("Введите номер телефона");
+      return;
+    }
+
+    let access_token = "";
+
+    if (isLogin) {
+      const data = {
+        phone: `+7${phone.replace(/\D/g, "")}`,
+        password: password,
+      };
+
+      await httpClient.login(data)
+      .then((response) => {
+        access_token = response.access_token;
+        console.log("LOGIN | access_token: ", response.access_token);
+      })
+      .catch((error) => {
+        setError(error.response.data.detail);
+        console.log(error)
+        return;
+      })
+    } else {
+      const data = {
+        phone: `+7${phone.replace(/\D/g, "")}`,
+        password: password,
+        full_name: name,
+        birth_date: birthDate
+      };
+
+      await httpClient.register(data)
+      .then((response) => {
+        access_token = response.access_token;
+        console.log("REGISTER | access_token: ", response.access_token);
+      })
+      .catch((error) => {
+        setError(error.response.data.detail);
+        console.log(error)
+        return;
+      });
     };
 
-    const endpoint = isLogin ? "http://127.0.0.1:8000/user/login" : "http://127.0.0.1:8000/user/signup";
+    localStorage.setItem("access_token", access_token);
+    httpClient.token = access_token;
 
-    await axios
-    .post(endpoint, JSON.stringify(data), {
-      headers: { "Content-Type": "application/json" },
-    })
-    .then((response) => {
-      console.log(response);
-      alert(isLogin ? "Вход выполнен успешно!" : "Регистрация прошла успешно!");
-    })
-    .catch((error) => {
-      setError(error.response.data.detail);
-      console.log(error)
-    });
+    const user = await httpClient.getCurrentUser();
+
+    setUser(user);
+    push("/");
   };
 
   const today = new Date().toISOString().split("T")[0]; // Текущая дата

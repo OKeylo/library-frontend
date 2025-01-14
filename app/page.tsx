@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBooks } from "@/http";
+import { useAuth } from "@/context/authContext";
+import Link from "next/link";
 
 interface Book {
   id: number;
@@ -18,6 +20,8 @@ interface Book {
 export default function Library() {
   const [books, setBooks] = useState<Book[] | null>(null);
   const router = useRouter();
+  const { user, setUser } = useAuth();
+  const [isShow, setIsShow] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchBooks() {
@@ -30,15 +34,46 @@ export default function Library() {
   return (
     <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
       {/* Шапка */}
-      <header className="row-start-1 w-full flex items-center justify-between px-6 sm:px-20 py-4 bg-white shadow-md">
-        <h1 className="text-2xl font-bold text-gray-800">Библиотека</h1>
+      <header className="row-start-1 w-full flex items-center justify-between px-6 sm:px-20 py-4 bg-white dark:bg-gray-700 shadow-md">
+        <h1 className="text-2xl font-bold text-gray-700 dark:text-white">Библиотека</h1>
+        
         <button
-          onClick={() => router.push("/profile")}
+          onClick={() => setIsShow(!isShow)}
           className="w-10 h-10 bg-blue-500 text-white font-bold rounded-full hover:bg-blue-600 transition"
           title="Профиль"
         >
           П
         </button>
+
+        {/*Выпадающее меню пользователя*/}
+        {(user && isShow) && (
+          <div
+            className="absolute z-10 flex flex-col bg-white dark:bg-gray-700 right-12 top-36 mt-3 rounded-lg shadow-md"
+            onMouseLeave={() => setIsShow(false)}
+          >
+            <div className="px-3 py-1">
+              <p className="text-secondary text-base font-medium">
+                {user.full_name}
+              </p>
+              <p className="text-secondary text-sm font-normal">
+                {user.phone}
+              </p>
+            </div>
+
+            <Link
+              className="hover:text-blue-500"
+              onClick={() => {
+                localStorage.removeItem("access_token");
+                setUser(undefined);
+              }}
+              href="/"
+            >
+              <p className="px-3 py-1">
+                Выйти
+              </p>
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* Контент */}
