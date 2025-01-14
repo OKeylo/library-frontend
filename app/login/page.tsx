@@ -1,4 +1,5 @@
 "use client";
+import axios from "axios";
 import { useState } from "react";
 
 export default function Home() {
@@ -45,29 +46,24 @@ export default function Home() {
     const data = {
       full_name: name,
       phone: `+7${phone.replace(/\D/g, "")}`,
-      password,
+      password: password,
       birth_date: isLogin ? undefined : birthDate,
     };
 
-    try {
-      const endpoint = isLogin ? "http://127.0.0.1:8000/user/login" : "http://127.0.0.1:8000/user/signup";
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      console.log(response);
+    const endpoint = isLogin ? "http://127.0.0.1:8000/user/login" : "http://127.0.0.1:8000/user/signup";
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.detail) setError(errorData.detail);
-        else setError("Произошла ошибка. Попробуйте снова.");
-      } else {
-        alert(isLogin ? "Вход выполнен успешно!" : "Регистрация прошла успешно!");
-      }
-    } catch {
-      setError("Ошибка подключения. Проверьте интернет-соединение.");
-    }
+    await axios
+    .post(endpoint, JSON.stringify(data), {
+      headers: { "Content-Type": "application/json" },
+    })
+    .then((response) => {
+      console.log(response);
+      alert(isLogin ? "Вход выполнен успешно!" : "Регистрация прошла успешно!");
+    })
+    .catch((error) => {
+      setError(error.response.data.detail);
+      console.log(error)
+    });
   };
 
   const today = new Date().toISOString().split("T")[0]; // Текущая дата
@@ -124,8 +120,8 @@ export default function Home() {
             <label className="text-sm font-medium" htmlFor="phone">
               Номер телефона
             </label>
-            <div className="flex items-center">
-              <span className="px-2 py-1 border rounded-l-md bg-gray-200 text-black font-semibold">+7</span>
+            <div className="flex">
+              <span className="flex items-center px-2 py-1 border rounded-l-md bg-gray-200 text-black font-semibold">+7</span>
               <input
                 type="text"
                 id="phone"
