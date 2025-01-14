@@ -75,7 +75,7 @@ export default function Home() {
         </div>
 
         {isLogin ? (
-          <form className="flex flex-col gap-4 w-80 p-6 bg-white rounded-lg shadow-md">
+          <form className="flex flex-col gap-4 w-80 p-6 bg-white dark:bg-gray-700 rounded-lg shadow-md">
             <h2 className="text-lg font-semibold">Вход</h2>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium" htmlFor="phone">
@@ -123,7 +123,7 @@ export default function Home() {
             </button>
           </form>
         ) : (
-          <form className="flex flex-col gap-4 w-80 p-6 bg-white rounded-lg shadow-md">
+          <form className="flex flex-col gap-4 w-80 p-6 bg-white dark:bg-gray-700 rounded-lg shadow-md">
             <h2 className="text-lg font-semibold">Регистрация</h2>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium" htmlFor="name">
@@ -157,13 +157,12 @@ export default function Home() {
                 Дата рождения
               </label>
               <input
-                type="text"
-                id="birthDate"
-                value={birthDate}
-                onChange={(e) => handleBirthDateChange(e.target.value)}
-                className="p-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300 text-black font-semibold"
-                placeholder="ДД-ММ-ГГГГ"
-              />
+              type="date"
+              id="birthDate"
+              value={birthDate}
+              onChange={(e) => handleBirthDateChange(e.target.value)}
+              className="p-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300 text-black font-semibold"
+            />
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium" htmlFor="password">
