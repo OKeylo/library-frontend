@@ -9,13 +9,13 @@ import httpClient from "@/http/index";
 import { BookProps, UserTransactionBookProps, BookTransactionsDeleteProps } from "@/http/httpClient";
 import { toast } from 'react-toastify';
 
-
 export default function Library() {
   const [books, setBooks] = useState<UserTransactionBookProps[] | null>(null);
   const { push } = useRouter();
   const { user, setUser } = useAuth();
   const [isShow, setIsShow] = useState<boolean>(false);
-
+  const [isSticky, setIsSticky] = useState<boolean>(false); // Для изменения стилей шапки
+  // Обработчик возврата книги
   async function returnBook({id, library_id, book_id}: BookTransactionsDeleteProps) {
     const data: BookTransactionsDeleteProps = {
         id: id,
@@ -42,6 +42,7 @@ export default function Library() {
     })
   }
 
+  // Получение книг пользователя
   useEffect(() => {
     async function fetchData() {
         if (user) {
@@ -59,11 +60,34 @@ export default function Library() {
     fetchData();
   }, [user?.id]);
 
+  // Следим за прокруткой
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsSticky(true);
+      } else {
+        setIsSticky(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
       {/* Шапка */}
-      <header className="row-start-1 w-full flex items-center justify-between px-6 sm:px-20 py-4 bg-white dark:bg-gray-700 shadow-md">
-        <h1 className="text-2xl font-bold text-gray-700 dark:text-white">Библиотека</h1>
+      <header className={`w-full flex items-center justify-between px-6 sm:px-20 py-4 bg-white dark:bg-gray-700 shadow-md sticky top-0 z-10 
+        ${isSticky ? 'rounded-b-lg' : 'rounded-lg'}`}
+      >
+        <h1
+          onClick={() => push('/')}
+          className="text-2xl font-bold text-gray-700 dark:text-white cursor-pointer transition-colors duration-300 hover:text-blue-500"
+        >
+          Библиотека
+        </h1>
 
         <div className="flex items-center gap-4 relative">
           {user && (
