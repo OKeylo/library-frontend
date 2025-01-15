@@ -197,6 +197,12 @@ export default function Library() {
               <p className="text-gray-600">
                 Телефон библиотеки: <span className="font-medium">{book.library_phone}</span>
               </p>
+              <p className="text-gray-600">
+                Дата получения: <span className="font-medium">{new Date(book.issue_date).toLocaleDateString('ru-RU')}</span>
+              </p>
+              <p className="text-gray-600">
+                Дата возврата: <span className="font-medium">{new Date(book.return_date).toLocaleDateString('ru-RU')}</span>
+              </p>
               <button
                 disabled={!user}
                 onClick={(e) => user && returnBook({id: book.id, library_id: book.library_id, book_id: book.book_id})}

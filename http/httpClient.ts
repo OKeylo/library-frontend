@@ -78,32 +78,34 @@ export interface TakeBookProps {
 }
 
 export interface TakeUserBooksProps {
-    id: number
-    library_id: number
-    user_id: number
-    book_id: number
+    id: number;
+    library_id: number;
+    user_id: number;
+    book_id: number;
 }
 
 export interface UserTransactionBookProps {
-    id: number
-    book_id: number
-    book_name: string
-    book_language: string
-    book_page_number: number
-    book_price: number
-    book_rating: number
-    book_age_limit: number
-    author_full_name: string
-    genre_name: string
-    library_id: number
-    library_address: string
-    library_phone: string
+    id: number;
+    issue_date: Date;
+    return_date: Date;
+    book_id: number;
+    book_name: string;
+    book_language: string;
+    book_page_number: number;
+    book_price: number;
+    book_rating: number;
+    book_age_limit: number;
+    author_full_name: string;
+    genre_name: string;
+    library_id: number;
+    library_address: string;
+    library_phone: string;
 }
 
 export interface BookTransactionsDeleteProps {
-    id: number
-    library_id: number
-    book_id: number
+    id: number;
+    library_id: number;
+    book_id: number;
 }
 
 export interface DiscountProps {
