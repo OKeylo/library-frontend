@@ -15,6 +15,7 @@ export default function Home() {
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [passwordLengthError, setPasswordLengthError] = useState(""); 
 
   const formatPhone = (value: string) => {
     const onlyNumbers = value.replace(/\D/g, "").substring(0, 10);
@@ -37,6 +38,7 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setPasswordLengthError(""); 
 
     if (!name.trim() && !isLogin) {
       setError("Введите имя.");
@@ -50,6 +52,11 @@ export default function Home() {
 
     if (!password) {
       setError("Введите пароль");
+      return;
+    }
+
+    if (password.length < 8 && !isLogin) { 
+      setPasswordLengthError("В пароле должно быть не меньше 8 символов");
       return;
     }
 
@@ -73,9 +80,9 @@ export default function Home() {
       })
       .catch((error) => {
         setError(error.response.data.detail);
-        console.log(error)
+        console.log(error);
         return;
-      })
+      });
     } else {
       const data = {
         phone: `+7${phone.replace(/\D/g, "")}`,
@@ -91,10 +98,10 @@ export default function Home() {
       })
       .catch((error) => {
         setError(error.response.data.detail);
-        console.log(error)
+        console.log(error);
         return;
       });
-    };
+    }
 
     localStorage.setItem("access_token", access_token);
     httpClient.token = access_token;
@@ -105,7 +112,7 @@ export default function Home() {
     push("/");
   };
 
-  const today = new Date().toISOString().split("T")[0]; // Текущая дата
+  const today = new Date().toISOString().split("T")[0]; 
 
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -183,7 +190,7 @@ export default function Home() {
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
                 className="p-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300 text-black font-semibold"
-                max={today}
+                max="2018-01-01"
                 min="1900-01-01"
               />
             </div>
@@ -211,6 +218,8 @@ export default function Home() {
               </button>
             </div>
           </div>
+
+          {passwordLengthError && <div className="text-red-500 text-sm">{passwordLengthError}</div>} {/* Ошибка длины пароля */}
 
           {error && <div className="text-red-500 text-sm">{error}</div>}
 
