@@ -38,7 +38,15 @@ export interface UserProps {
 export interface UserUpdateProps {
     full_name?: string;
     phone?: string;
+    password?: string;
+    subscription?: string;
+    sub_level?: number;
     birth_date?: string;
+}
+
+export interface UserDiscountUpdateProps {
+    subscription: string;
+    sub_level: number;
 }
 
 export interface BookProps {
@@ -91,6 +99,13 @@ export interface BookTransactionsDeleteProps {
     book_id: number
 }
 
+export interface DiscountProps {
+    subscription: string;
+    sub_level: number;
+    discount_value: number;
+}
+
+
 export class HttpClient {
     token: string | null = null;
     baseURL: string = "http://127.0.0.1:8000";
@@ -142,6 +157,8 @@ export class HttpClient {
     }
 
     async updateUser(user_id: number , data: UserUpdateProps): Promise<number> {
+        console.log("daat ", data)
+        console.log(JSON.stringify(data))
         try {
             const response = await axios.put(
                 `${this.baseURL}/users/${user_id}`,
@@ -149,6 +166,7 @@ export class HttpClient {
                 {
                     headers: {
                         Authorization: this.token != null && `Bearer ${this.token}`,
+                        "Content-Type": "application/json"
                     }
                 }
             );
@@ -209,6 +227,35 @@ export class HttpClient {
                 }
             )
             return response.data
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getDiscounts(): Promise<DiscountProps[]> {
+        try {
+            const response = await axios.get(`${this.baseURL}/discounts`)
+            return response.data
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async updateUserDiscount(user_id: number , data: UserDiscountUpdateProps): Promise<number> {
+        console.log("daat ", data)
+        console.log(JSON.stringify(data))
+        try {
+            const response = await axios.put(
+                `${this.baseURL}/users/${user_id}`,
+                JSON.stringify(data),
+                {
+                    headers: {
+                        Authorization: this.token != null && `Bearer ${this.token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+            return response.data;
         } catch (error) {
             throw error;
         }
