@@ -5,34 +5,69 @@ import { useEffect, useState } from "react";
 import { getBooks } from "@/http";
 import { useAuth } from "@/context/authContext";
 import Link from "next/link";
+import httpClient from "@/http/index";
+import { BookProps, BooksWithParamsProps, TakeBookProps } from "@/http/httpClient";
 
-interface Book {
-  id: number;
-  name: string;
-  language: string;
-  price: number;
-  rating: number;
-  age_limit: number;
-  author_full_name: string;
-  genre_name: string;
-}
 
 export default function Library() {
-  const [books, setBooks] = useState<Book[] | null>(null);
-  const router = useRouter();
+  const [books, setBooks] = useState<BookProps[] | null>(null);
+  const { push } = useRouter();
   const { user, setUser } = useAuth();
   const [isShow, setIsShow] = useState<boolean>(false);
 
-  useEffect(() => {
-    async function fetchBooks() {
-      const booksData = await getBooks();
-      setBooks(booksData);
+  const [paramNameContains, setParamNameContains] = useState<string>("");
+
+  async function takeBook({library_id, user_id, book_id}: TakeBookProps) {
+    const data: TakeBookProps = {
+      library_id: library_id,
+      user_id: user_id,
+      book_id: book_id
     }
-    fetchBooks();
+
+    await httpClient.takeBook(data)
+    .then((transaction_id) => {
+      console.log("Вы успешно взяли книгу! | ID транзакции: ", transaction_id);
+    })
+    .catch((error) => {
+      console.log(error)
+      return;
+    })
+  }
+
+  async function fetchBooks() {
+    const params: BooksWithParamsProps = {
+      name_contains: paramNameContains,
+    }
+    await httpClient.getBooksWithParams(params)
+    .then((data) => {
+      setBooks(data);
+    })
+    .catch((error) => {
+      console.log(error)
+      return;
+    })
+  }
+
+  useEffect(() => {
+    async function fetchData() {
+      const params: BooksWithParamsProps = {
+      }
+      await httpClient.getBooksWithParams(params)
+      .then((data) => {
+        setBooks(data);
+      })
+      .catch((error) => {
+        console.log(error)
+        return;
+      })
+    }
+
+    fetchData();
   }, []);
 
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
+    <div className="flex flex-col items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
+      {/* Шапка */}
       <header className="row-start-1 w-full flex items-center justify-between px-6 sm:px-20 py-4 bg-white dark:bg-gray-700 shadow-md">
         <h1 className="text-2xl font-bold text-gray-700 dark:text-white">Библиотека</h1>
 
@@ -78,7 +113,7 @@ export default function Library() {
                 onClick={() => {
                   localStorage.removeItem("access_token");
                   setUser(undefined);
-                  router.push("/login");
+                  push("/login");
                 }}
                 className="mt-4 flex items-center justify-center gap-2 px-3 py-2 text-center bg-red-500 text-white font-medium rounded-md hover:bg-red-600 transition"
               >
@@ -104,17 +139,35 @@ export default function Library() {
         </div>
       </header>
 
+      {/* Поиск */}
+      <div className="row-start-2 flex flex-col items-center gap-4 w-full max-w-md mx-auto">
+        <input
+          type="text"
+          placeholder="Поиск по названию книги..."
+          value={paramNameContains}
+          onChange={(e) => setParamNameContains(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          onClick={() => fetchBooks()}
+          className="mt-2 px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition"
+        >
+          Найти
+        </button>
+      </div>
+
+      {/* Контент */}
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full max-w-4xl">
         {books && (
-          <h2 className="text-lg font-semibold text-gray-700">Всего книг: {books.length}</h2>
+          <h2 className="text-lg font-semibold text-gray-700">Найдено книг: {books.length}</h2>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-          {books?.map((book: Book) => (
+          {books?.map((book: BookProps, index) => (
             <div
-              key={book.id}
+              key={index}
               className="bg-white border border-gray-300 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
             >
-              <h3 className="text-xl font-semibold text-gray-800">{book.name}</h3>
+              <h3 className="text-xl font-semibold text-gray-800">{book.book_name}</h3>
               <p className="text-gray-600">
                 Автор: <span className="font-medium">{book.author_full_name}</span>
               </p>
@@ -122,20 +175,30 @@ export default function Library() {
                 Жанр: <span className="font-medium">{book.genre_name}</span>
               </p>
               <p className="text-gray-600">
-                Язык: <span className="font-medium">{book.language}</span>
+                Язык: <span className="font-medium">{book.book_language}</span>
               </p>
               <p className="text-gray-600">
-                Рейтинг: <span className="font-medium">{book.rating.toFixed(1)}</span>
+                Количество страниц: <span className="font-medium">{book.book_page_number}</span>
+              </p>
+              <p className="text-gray-600">
+                Рейтинг: <span className="font-medium">{book.book_rating}</span>
               </p>
               <p className="text-gray-600">
                 Возрастное ограничение:{" "}
-                <span className="font-medium">{book.age_limit}+</span>
+                <span className="font-medium">{book.book_age_limit}+</span>
               </p>
               <p className="text-gray-600">
-                Цена: <span className="font-medium">{book.price} ₽</span>
+                Цена: <span className="font-medium">{book.book_price} ₽</span>
               </p>
-              <button className="mt-4 px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition">
-                Подробнее
+              <p className="text-gray-600">
+                Адрес библиотеки: <span className="font-medium">{book.library_address} ₽</span>
+              </p>
+              <button
+                disabled={!user}
+                onClick={(e) => user && takeBook({library_id: book.library_id, user_id: user?.id, book_id: book.book_id})}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition cursor-pointer"
+              >
+                Приобрести
               </button>
             </div>
           ))}

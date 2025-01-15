@@ -27,6 +27,7 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     const getUser = async () => {
       await httpClient.getCurrentUser()
       .then((user) => {
+        console.log("Пользователь: ", user);
         setUser(user);
       })
       .catch((error) => {
