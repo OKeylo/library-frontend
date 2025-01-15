@@ -6,16 +6,26 @@ import { getBooks } from "@/http";
 import { useAuth } from "@/context/authContext";
 import Link from "next/link";
 import httpClient from "@/http/index";
-import { BookProps, BooksWithParamsProps, TakeBookProps } from "@/http/httpClient";
+import { BookProps, BooksWithParamsProps, TakeBookProps, GenreProps } from "@/http/httpClient";
 import { toast } from 'react-toastify';
 
 export default function Library() {
   const [books, setBooks] = useState<BookProps[] | null>(null);
+  const [genres, setGenres] = useState<GenreProps[] | null>(null);
+
   const { push } = useRouter();
   const { user, setUser } = useAuth();
   const [isShow, setIsShow] = useState<boolean>(false);
 
   const [paramNameContains, setParamNameContains] = useState<string>("");
+  const [paramGenre, setParamGenre] = useState<string>("");
+  const [paramAgeLimit, setParamAgeLimit] = useState<number | null>(null);
+  const [paramRatingFrom, setParamRatingFrom] = useState<number | null>(null);
+  const [paramRatingTo, setParamRatingTo] = useState<number | null>(null);
+  const [paramPriceFrom, setParamPriceFrom] = useState<number | null>(null);
+  const [paramPriceTo, setParamPriceTo] = useState<number | null>(null);
+  const [paramSortBy, setParamSortBy] = useState<number | null>(1);
+
   const [isSticky, setIsSticky] = useState<boolean>(false); // пусть шапка клеится к потолку, чтобы её всегда было видно, но из-за кривого отступа сверху выглядит так себе
 
   async function takeBook({ library_id, user_id, book_id }: TakeBookProps) {
@@ -40,6 +50,13 @@ export default function Library() {
   async function fetchBooks() {
     const params: BooksWithParamsProps = {
       name_contains: paramNameContains,
+      genre: paramGenre,
+      age_limit: paramAgeLimit !== null ? paramAgeLimit : undefined,
+      rating_from: paramRatingFrom !== null ? paramRatingFrom : undefined,
+      rating_to: paramRatingTo !== null ? paramRatingTo : undefined,
+      price_from: paramPriceFrom !== null ? paramPriceFrom : undefined,
+      price_to: paramPriceTo !== null ? paramPriceTo : undefined,
+      sort_by: paramSortBy !== null ? paramSortBy : undefined,
     }
     await httpClient.getBooksWithParams(params)
       .then((data) => {
@@ -63,6 +80,15 @@ export default function Library() {
           console.log(error)
           return;
         })
+
+      await httpClient.getGenres()
+      .then((data) => {
+        setGenres(data);
+      })
+      .catch((error) => {
+        console.log(error)
+        return;
+      })
     }
 
     fetchData();
@@ -169,6 +195,129 @@ export default function Library() {
           onChange={(e) => setParamNameContains(e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
+        {/* Меню выбора жанра */}
+        <select
+          className="mt-4 p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={(e) => {
+            const selectedGenre = e.target.value;
+            setParamGenre(selectedGenre);
+            console.log("Выбранный жанр:", selectedGenre);
+          }}
+        >
+          <option value="">Любой</option>
+          {genres?.map((genre) => (
+            <option key={genre.id} value={genre.name}>
+              {genre.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Меню выбора возрастного ограничения */}
+        <select
+          className="mt-4 p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={(e) => setParamAgeLimit(Number(e.target.value))}
+        >
+          <option value="">Любое возрастное ограничение</option>
+          <option value="0">0+</option>
+          <option value="6">6+</option>
+          <option value="12">12+</option>
+          <option value="16">16+</option>
+          <option value="18">18+</option>
+        </select>
+
+        {/* Поля для рейтинга */}
+        <div className="flex gap-2">
+          <input
+            type="number"
+            inputMode="numeric"
+            placeholder="Рейтинг от"
+            value={paramRatingFrom !== null ? paramRatingFrom : ""}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              if (value >= 0 && value <= 10) {
+                // Если значение "Рейтинг от" больше чем "Рейтинг до", устанавливаем его равным "Рейтинг до"
+                if (paramRatingTo !== null && value > paramRatingTo) {
+                  setParamRatingFrom(paramRatingTo);  // устанавливаем значение "Рейтинг от" равным "Рейтинг до"
+                } else {
+                  setParamRatingFrom(value);
+                }
+              }
+            }}
+            className="w-full p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            min={0}
+            max={10}
+          />
+          <input
+            type="number"
+            placeholder="Рейтинг до"
+            value={paramRatingTo !== null ? paramRatingTo : ""}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              if (value >= 0 && value <= 10) {
+                // Если значение "Рейтинг до" меньше чем "Рейтинг от", обновляем "Рейтинг от"
+                if (paramRatingFrom !== null && value < paramRatingFrom) {
+                  setParamRatingTo(paramRatingFrom);  // устанавливаем значение "Рейтинг до" равным "Рейтинг от"
+                } else {
+                  setParamRatingTo(value);
+                }
+              }
+            }}
+            className="w-full p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            min={0}
+            max={10}
+          />
+        </div>
+
+        {/* Поля для стоимости */}
+        <div className="flex gap-2">
+          <input
+            type="number"
+            placeholder="Стоимость от"
+            value={paramPriceFrom !== null ? paramPriceFrom : ""}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+                if (value >= 0) {  // Проверка на положительное значение
+                  if (paramPriceTo !== null && value > paramPriceTo) {
+                    // Если значение "Стоимость от" больше "Стоимость до", устанавливаем "Стоимость от" равным "Стоимость до"
+                    setParamPriceFrom(paramPriceTo);
+                  } else {
+                    setParamPriceFrom(value);
+                  }
+                }
+            }}
+            className="w-full p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            min={0}
+          />
+          <input
+            type="number"
+            placeholder="Стоимость до"
+            value={paramPriceTo !== null ? paramPriceTo : ""}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              if (value >= 0) {  // Проверка на положительное значение
+                if (paramPriceFrom !== null && value < paramPriceFrom) {
+                  // Если значение "Стоимость до" меньше "Стоимость от", устанавливаем "Стоимость до" равным "Стоимость от"
+                  setParamPriceTo(paramPriceFrom);
+                } else {
+                  setParamPriceTo(value);
+                }
+              }
+            }}
+            className="w-full p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            min={0}
+          />
+          
+          {/* Поля для сортировки */}
+          <select
+            className="mt-4 p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => setParamSortBy(Number(e.target.value))}
+          >
+            <option value="1">Новые издания</option>
+            <option value="0">Старые издания</option>
+          </select>
+        </div>
+        
         <button
           onClick={() => fetchBooks()}
           className="mt-2 px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition"

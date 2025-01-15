@@ -22,6 +22,13 @@ export interface BooksWithParamsProps {
     name_contains?: string;
     filter_field?: string;
     filter_value?: string;
+    genre?: string;
+    age_limit?: number;
+    rating_from?: number;
+    rating_to?: number;
+    price_from?: number;
+    price_to?: number;
+    sort_by?: number;
 }
 
 export interface UserProps {
@@ -105,6 +112,11 @@ export interface DiscountProps {
     discount_value: number;
 }
 
+export interface GenreProps {
+    id: number;
+    name: string;
+    description: string;
+}
 
 export class HttpClient {
     token: string | null = null;
@@ -256,6 +268,15 @@ export class HttpClient {
                 }
             );
             return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getGenres(): Promise<GenreProps[]> {
+        try {
+            const response = await axios.get(`${this.baseURL}/genres`)
+            return response.data
         } catch (error) {
             throw error;
         }
