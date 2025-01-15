@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
+import internal from "stream";
 
 interface LoginProps {
     phone: string;
@@ -59,6 +60,34 @@ export interface TakeBookProps {
     book_id: number;
 }
 
+export interface TakeUserBooksProps {
+    id: number
+    library_id: number
+    user_id: number
+    book_id: number
+}
+
+export interface UserTransactionBookProps {
+    id: number
+    book_id: number
+    book_name: string
+    book_language: string
+    book_page_number: number
+    book_price: number
+    book_rating: number
+    book_age_limit: number
+    author_full_name: string
+    genre_name: string
+    library_id: number
+    library_address: string
+    library_phone: string
+}
+
+export interface BookTransactionsDeleteProps {
+    id: number
+    library_id: number
+    book_id: number
+}
 
 export class HttpClient {
     token: string | null = null;
@@ -143,7 +172,34 @@ export class HttpClient {
             const response = await axios.post(
                 `${this.baseURL}/book_transactions_user`,
                 JSON.stringify(data),
+                {
+                    headers: {
+                        Authorization: this.token != null && `Bearer ${this.token}`,
+                        "Content-Type": "application/json" 
+                    },
+                }
+            )
+            return response.data
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getUserBooks(user_id: number): Promise<UserTransactionBookProps[]> {
+        try {
+            const response = await axios.get(`${this.baseURL}/book_transactions_user/${user_id}`)
+            return response.data
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async returnBook(data: BookTransactionsDeleteProps): Promise<number> {
+        try {
+            const response = await axios.delete(
+                `${this.baseURL}/book_transactions_user`,
                 {   
+                    data: JSON.stringify(data),
                     headers: {
                         Authorization: this.token != null && `Bearer ${this.token}`,
                         "Content-Type": "application/json" 

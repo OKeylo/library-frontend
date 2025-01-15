@@ -6,67 +6,58 @@ import { getBooks } from "@/http";
 import { useAuth } from "@/context/authContext";
 import Link from "next/link";
 import httpClient from "@/http/index";
-import { BookProps, BooksWithParamsProps, TakeBookProps } from "@/http/httpClient";
+import { BookProps, UserTransactionBookProps, BookTransactionsDeleteProps } from "@/http/httpClient";
 import { toast } from 'react-toastify';
 
 
 export default function Library() {
-  const [books, setBooks] = useState<BookProps[] | null>(null);
+  const [books, setBooks] = useState<UserTransactionBookProps[] | null>(null);
   const { push } = useRouter();
   const { user, setUser } = useAuth();
   const [isShow, setIsShow] = useState<boolean>(false);
 
-  const [paramNameContains, setParamNameContains] = useState<string>("");
-
-  async function takeBook({library_id, user_id, book_id}: TakeBookProps) {
-    const data: TakeBookProps = {
-      library_id: library_id,
-      user_id: user_id,
-      book_id: book_id
+  async function returnBook({id, library_id, book_id}: BookTransactionsDeleteProps) {
+    const data: BookTransactionsDeleteProps = {
+        id: id,
+        library_id: library_id,
+        book_id: book_id
     }
 
-    await httpClient.takeBook(data)
+    await httpClient.returnBook(data)
     .then((transaction_id) => {
-      console.log("Вы успешно взяли книгу! | ID транзакции: ", transaction_id);
-      toast.success("Вы успешно взяли книгу!");
-    })
-    .catch((error) => {
-      console.log(error)
-      toast.error("Данной книги нет в наличии!");
-      return;
-    })
-  }
+      console.log("Вы успешно вернули книгу! | ID транзакции: ", transaction_id);
+      toast.success("Вы успешно вернули книгу!");
 
-  async function fetchBooks() {
-    const params: BooksWithParamsProps = {
-      name_contains: paramNameContains,
-    }
-    await httpClient.getBooksWithParams(params)
-    .then((data) => {
-      setBooks(data);
+      setBooks((prevBooks) => {
+        if (prevBooks) {
+            return prevBooks.filter(book => book.id !== transaction_id);
+        }
+        return prevBooks;
+    });
     })
     .catch((error) => {
       console.log(error)
+      toast.error("У вас нет такой книги!");
       return;
     })
   }
 
   useEffect(() => {
     async function fetchData() {
-      const params: BooksWithParamsProps = {
-      }
-      await httpClient.getBooksWithParams(params)
-      .then((data) => {
-        setBooks(data);
-      })
-      .catch((error) => {
-        console.log(error)
-        return;
-      })
+        if (user) {
+            await httpClient.getUserBooks(user?.id)
+            .then((data) => {
+                setBooks(data);
+            })
+            .catch((error) => {
+                console.log(error)
+                return;
+            })
+        }
     }
 
     fetchData();
-  }, []);
+  }, [user?.id]);
 
   return (
     <div className="flex flex-col items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
@@ -142,30 +133,13 @@ export default function Library() {
         </div>
       </header>
 
-      {/* Поиск */}
-      <div className="row-start-2 flex flex-col items-center gap-4 w-full max-w-md mx-auto">
-        <input
-          type="text"
-          placeholder="Поиск по названию книги..."
-          value={paramNameContains}
-          onChange={(e) => setParamNameContains(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-md text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={() => fetchBooks()}
-          className="mt-2 px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition"
-        >
-          Найти
-        </button>
-      </div>
-
       {/* Контент */}
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full max-w-4xl">
         {books && (
           <h2 className="text-lg font-semibold text-gray-700">Найдено книг: {books.length}</h2>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-          {books?.map((book: BookProps, index) => (
+          {books?.map((book: UserTransactionBookProps, index) => (
             <div
               key={index}
               className="bg-white border border-gray-300 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
@@ -196,12 +170,15 @@ export default function Library() {
               <p className="text-gray-600">
                 Адрес библиотеки: <span className="font-medium">{book.library_address}</span>
               </p>
+              <p className="text-gray-600">
+                Телфеон библиотеки: <span className="font-medium">{book.library_phone}</span>
+              </p>
               <button
                 disabled={!user}
-                onClick={(e) => user && takeBook({library_id: book.library_id, user_id: user?.id, book_id: book.book_id})}
+                onClick={(e) => user && returnBook({id: book.id, library_id: book.library_id, book_id: book.book_id})}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition cursor-pointer"
               >
-                Приобрести
+                Вернуть
               </button>
             </div>
           ))}
