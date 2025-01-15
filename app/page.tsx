@@ -9,7 +9,6 @@ import httpClient from "@/http/index";
 import { BookProps, BooksWithParamsProps, TakeBookProps } from "@/http/httpClient";
 import { toast } from 'react-toastify';
 
-
 export default function Library() {
   const [books, setBooks] = useState<BookProps[] | null>(null);
   const { push } = useRouter();
@@ -17,8 +16,9 @@ export default function Library() {
   const [isShow, setIsShow] = useState<boolean>(false);
 
   const [paramNameContains, setParamNameContains] = useState<string>("");
+  const [isSticky, setIsSticky] = useState<boolean>(false); // пусть шапка клеится к потолку, чтобы её всегда было видно, но из-за кривого отступа сверху выглядит так себе
 
-  async function takeBook({library_id, user_id, book_id}: TakeBookProps) {
+  async function takeBook({ library_id, user_id, book_id }: TakeBookProps) {
     const data: TakeBookProps = {
       library_id: library_id,
       user_id: user_id,
@@ -26,15 +26,15 @@ export default function Library() {
     }
 
     await httpClient.takeBook(data)
-    .then((transaction_id) => {
-      console.log("Вы успешно взяли книгу! | ID транзакции: ", transaction_id);
-      toast.success("Вы успешно взяли книгу!");
-    })
-    .catch((error) => {
-      console.log(error)
-      toast.error("Данной книги нет в наличии!");
-      return;
-    })
+      .then((transaction_id) => {
+        console.log("Вы успешно взяли книгу! | ID транзакции: ", transaction_id);
+        toast.success("Вы успешно взяли книгу!");
+      })
+      .catch((error) => {
+        console.log(error)
+        toast.error("Данной книги нет в наличии!");
+        return;
+      })
   }
 
   async function fetchBooks() {
@@ -42,20 +42,6 @@ export default function Library() {
       name_contains: paramNameContains,
     }
     await httpClient.getBooksWithParams(params)
-    .then((data) => {
-      setBooks(data);
-    })
-    .catch((error) => {
-      console.log(error)
-      return;
-    })
-  }
-
-  useEffect(() => {
-    async function fetchData() {
-      const params: BooksWithParamsProps = {
-      }
-      await httpClient.getBooksWithParams(params)
       .then((data) => {
         setBooks(data);
       })
@@ -63,15 +49,47 @@ export default function Library() {
         console.log(error)
         return;
       })
+  }
+
+  useEffect(() => {
+    async function fetchData() {
+      const params: BooksWithParamsProps = {
+      }
+      await httpClient.getBooksWithParams(params)
+        .then((data) => {
+          setBooks(data);
+        })
+        .catch((error) => {
+          console.log(error)
+          return;
+        })
     }
 
     fetchData();
+
+    // следим за шапкой
+    const handleScroll = () => {
+      if (window.scrollY > 0) {
+        setIsSticky(true);
+      } else {
+        setIsSticky(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
     <div className="flex flex-col items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
       {/* Шапка */}
-      <header className="row-start-1 w-full flex items-center justify-between px-6 sm:px-20 py-4 bg-white dark:bg-gray-700 shadow-md">
+      <header
+        className={`w-full flex items-center justify-between px-6 sm:px-20 py-4 bg-white dark:bg-gray-700 shadow-md sticky top-0 z-10 
+          ${isSticky ? 'rounded-b-lg' : 'rounded-lg'}`}
+      >
         <h1 className="text-2xl font-bold text-gray-700 dark:text-white">Библиотека</h1>
 
         <div className="flex items-center gap-4 relative">
@@ -143,7 +161,7 @@ export default function Library() {
       </header>
 
       {/* Поиск */}
-      <div className="row-start-2 flex flex-col items-center gap-4 w-full max-w-md mx-auto">
+      <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto mt-20">
         <input
           type="text"
           placeholder="Поиск по названию книги..."
@@ -160,7 +178,7 @@ export default function Library() {
       </div>
 
       {/* Контент */}
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full max-w-4xl">
+      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full max-w-4xl mt-8">
         {books && (
           <h2 className="text-lg font-semibold text-gray-700">Найдено книг: {books.length}</h2>
         )}
@@ -201,7 +219,7 @@ export default function Library() {
               </p>
               <button
                 disabled={!user}
-                onClick={(e) => user && takeBook({library_id: book.library_id, user_id: user?.id, book_id: book.book_id})}
+                onClick={(e) => user && takeBook({ library_id: book.library_id, user_id: user?.id, book_id: book.book_id })}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition cursor-pointer"
               >
                 Приобрести
@@ -211,8 +229,8 @@ export default function Library() {
         </div>
       </main>
 
-      <footer className="row-start-3 text-center text-sm text-gray-500">
-       Aboba
+      <footer className="text-center text-sm text-gray-500 mt-8">
+        Aboba
       </footer>
     </div>
   );
