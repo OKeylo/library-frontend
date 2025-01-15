@@ -33,50 +33,77 @@ export default function Library() {
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
-      {/* Шапка */}
       <header className="row-start-1 w-full flex items-center justify-between px-6 sm:px-20 py-4 bg-white dark:bg-gray-700 shadow-md">
         <h1 className="text-2xl font-bold text-gray-700 dark:text-white">Библиотека</h1>
-        
-        <button
-          onClick={() => setIsShow(!isShow)}
-          className="w-10 h-10 bg-blue-500 text-white font-bold rounded-full hover:bg-blue-600 transition"
-          title="Профиль"
-        >
-          П
-        </button>
 
-        {/*Выпадающее меню пользователя*/}
-        {(user && isShow) && (
-          <div
-            className="absolute z-10 flex flex-col bg-white dark:bg-gray-700 right-12 top-36 mt-3 rounded-lg shadow-md"
-            onMouseLeave={() => setIsShow(false)}
-          >
-            <div className="px-3 py-1">
-              <p className="text-secondary text-base font-medium">
-                {user.full_name}
-              </p>
-              <p className="text-secondary text-sm font-normal">
-                {user.phone}
-              </p>
+        <div className="flex items-center gap-4 relative">
+          {user && (
+            <div className="flex flex-col items-end text-gray-700 dark:text-white">
+              <span className="text-base font-medium">{user.full_name}</span>
+              <span className="text-sm font-normal">{user.phone}</span>
             </div>
-
-            <Link
-              className="hover:text-blue-500"
-              onClick={() => {
-                localStorage.removeItem("access_token");
-                setUser(undefined);
+          )}
+          <button
+            onClick={() => setIsShow(!isShow)}
+            className="w-10 h-10 bg-blue-500 text-white font-bold rounded-full hover:bg-blue-600 transition flex items-center justify-center"
+            title="Профиль"
+          >
+            {user?.full_name?.[0]?.toUpperCase() || "?"}
+          </button>
+          {user && isShow && (
+            <div
+              className="absolute z-10 flex flex-col bg-white dark:bg-gray-700 rounded-lg shadow-md p-4 w-64 mt-2"
+              style={{
+                top: "100%",
+                left: "50%",
+                transform: "translateX(-50%)",
               }}
-              href="/"
+              onMouseLeave={() => setIsShow(false)}
             >
-              <p className="px-3 py-1">
+              <Link
+                className="px-3 py-2 text-center bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition"
+                href="/profile"
+              >
+                Мой профиль
+              </Link>
+
+              <Link
+                className="mt-4 px-3 py-2 text-center bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition"
+                href="/mybooks"
+              >
+                Мои книги
+              </Link>
+
+              <button
+                onClick={() => {
+                  localStorage.removeItem("access_token");
+                  setUser(undefined);
+                  router.push("/login");
+                }}
+                className="mt-4 flex items-center justify-center gap-2 px-3 py-2 text-center bg-red-500 text-white font-medium rounded-md hover:bg-red-600 transition"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-9A2.25 2.25 0 002.25 5.25v13.5A2.25 2.25 0 004.5 21h9a2.25 2.25 0 002.25-2.25V15m0-6h5.25m0 0l-3-3m3 3l-3 3"
+                  />
+                </svg>
                 Выйти
-              </p>
-            </Link>
-          </div>
-        )}
+              </button>
+
+            </div>
+          )}
+        </div>
       </header>
 
-      {/* Контент */}
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full max-w-4xl">
         {books && (
           <h2 className="text-lg font-semibold text-gray-700">Всего книг: {books.length}</h2>
@@ -115,7 +142,6 @@ export default function Library() {
         </div>
       </main>
 
-      {/* Подвал */}
       <footer className="row-start-3 text-center text-sm text-gray-500">
        Aboba
       </footer>
