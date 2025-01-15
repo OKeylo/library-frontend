@@ -196,6 +196,9 @@ export default function Library() {
               <p className="text-gray-600">
                 Адрес библиотеки: <span className="font-medium">{book.library_address}</span>
               </p>
+              <p className="text-gray-600">
+                Телефон библиотеки: <span className="font-medium">{book.library_phone}</span>
+              </p>
               <button
                 disabled={!user}
                 onClick={(e) => user && takeBook({library_id: book.library_id, user_id: user?.id, book_id: book.book_id})}

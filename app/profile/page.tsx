@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getBooks } from "@/http";
 import { useAuth } from "@/context/authContext";
 import Link from "next/link";
@@ -44,20 +44,10 @@ export default function Library() {
 
   useEffect(() => {
     async function fetchData() {
-        if (user) {
-            await httpClient.getUserBooks(user?.id)
-            .then((data) => {
-                setBooks(data);
-            })
-            .catch((error) => {
-                console.log(error)
-                return;
-            })
-        }
     }
 
     fetchData();
-  }, [user?.id]);
+  }, [user]);
 
   return (
     <div className="flex flex-col items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
@@ -135,54 +125,29 @@ export default function Library() {
 
       {/* Контент */}
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full max-w-4xl">
-        {books && (
-          <h2 className="text-lg font-semibold text-gray-700">Найдено книг: {books.length}</h2>
+        {user && (
+            <React.Fragment>
+                <div className="text-black">
+                    <h2>Данные пользователя</h2>
+                    <p>Полное имя: {user.full_name}</p>
+                    <p>Телефон: {user.phone}</p>
+                    <p>Дата рождения: {new Date(user.birth_date).toLocaleDateString('ru-RU')}</p>
+                    <p>Подписка: {user.subscription}</p>
+                    <p>Уровень подписки: {user.sub_level}</p>
+                    <p>Величина скидки подписки: {user.subscription_value}%</p>
+                </div>
+
+                <div className="text-black">
+                    <h2>Приобрести подписку</h2>
+                    <p>Полное имя: {user.full_name}</p>
+                    <p>Телефон: {user.phone}</p>
+                    <p>Дата рождения: {new Date(user.birth_date).toLocaleDateString('ru-RU')}</p>
+                    <p>Подписка: {user.subscription}</p>
+                    <p>Уровень подписки: {user.sub_level}</p>
+                    <p>Величина скидки подписки: {user.subscription_value}%</p>
+                </div>
+            </React.Fragment>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-          {books?.map((book: UserTransactionBookProps, index) => (
-            <div
-              key={index}
-              className="bg-white border border-gray-300 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="text-xl font-semibold text-gray-800">{book.book_name}</h3>
-              <p className="text-gray-600">
-                Автор: <span className="font-medium">{book.author_full_name}</span>
-              </p>
-              <p className="text-gray-600">
-                Жанр: <span className="font-medium">{book.genre_name}</span>
-              </p>
-              <p className="text-gray-600">
-                Язык: <span className="font-medium">{book.book_language}</span>
-              </p>
-              <p className="text-gray-600">
-                Количество страниц: <span className="font-medium">{book.book_page_number}</span>
-              </p>
-              <p className="text-gray-600">
-                Рейтинг: <span className="font-medium">{book.book_rating}</span>
-              </p>
-              <p className="text-gray-600">
-                Возрастное ограничение:{" "}
-                <span className="font-medium">{book.book_age_limit}+</span>
-              </p>
-              <p className="text-gray-600">
-                Цена: <span className="font-medium">{book.book_price} ₽</span>
-              </p>
-              <p className="text-gray-600">
-                Адрес библиотеки: <span className="font-medium">{book.library_address}</span>
-              </p>
-              <p className="text-gray-600">
-                Телефон библиотеки: <span className="font-medium">{book.library_phone}</span>
-              </p>
-              <button
-                disabled={!user}
-                onClick={(e) => user && returnBook({id: book.id, library_id: book.library_id, book_id: book.book_id})}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition cursor-pointer"
-              >
-                Вернуть
-              </button>
-            </div>
-          ))}
-        </div>
       </main>
 
       <footer className="row-start-3 text-center text-sm text-gray-500">

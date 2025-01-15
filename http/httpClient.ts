@@ -1,5 +1,4 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import internal from "stream";
 
 interface LoginProps {
     phone: string;
@@ -29,6 +28,8 @@ export interface UserProps {
     id: number;
     full_name: string;
     phone: string;
+    subscription: string;
+    sub_level: number;
     subscription_value: number;
     birth_date: Date;
     is_admin: boolean;
@@ -52,6 +53,7 @@ export interface BookProps {
     genre_name: string;
     library_id: number;
     library_address: string;
+    library_phone: string;
 }
 
 export interface TakeBookProps {
