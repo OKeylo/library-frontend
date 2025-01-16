@@ -117,6 +117,10 @@ export default function Library() {
           ${isSticky ? 'rounded-b-lg' : 'rounded-lg'}`}
       >
         <h1 className="text-2xl font-bold text-gray-700 dark:text-white">Библиотека</h1>
+        
+        {user?.is_admin && (
+          <Link href={"/admin"}>Админ панель</Link>
+        )}
 
         <div className="flex items-center gap-4 relative">
           {user && (

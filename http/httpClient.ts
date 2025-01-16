@@ -120,6 +120,16 @@ export interface GenreProps {
     description: string;
 }
 
+export interface GenreAddProps {
+    name: string;
+    description: string;
+}
+
+export interface GenreUpdateProps {
+    name?: string;
+    description?: string;
+}
+
 export class HttpClient {
     token: string | null = null;
     baseURL: string = "http://127.0.0.1:8000";
@@ -278,6 +288,62 @@ export class HttpClient {
     async getGenres(): Promise<GenreProps[]> {
         try {
             const response = await axios.get(`${this.baseURL}/genres`)
+            return response.data
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async addGenre(data: GenreAddProps): Promise<number> {
+        try {
+            const response = await axios.post(
+                `${this.baseURL}/genres`,
+                JSON.stringify(data),
+                {
+                    headers: {
+                        Authorization: this.token != null && `Bearer ${this.token}`,
+                        "Content-Type": "application/json" 
+                    },
+                }
+            )
+            return response.data
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async updateGenre(id: number , data: GenreUpdateProps): Promise<number> {
+        console.log("daat ", data)
+        console.log(JSON.stringify(data))
+        try {
+            const response = await axios.put(
+                `${this.baseURL}/genres/${id}`,
+                JSON.stringify(data),
+                {
+                    headers: {
+                        Authorization: this.token != null && `Bearer ${this.token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteGenre(id: number): Promise<number> {
+        try {
+            const response = await axios.delete(
+                `${this.baseURL}/genres/${id}`,
+                {   
+                    data: JSON.stringify(id),
+                    headers: {
+                        Authorization: this.token != null && `Bearer ${this.token}`,
+                        "Content-Type": "application/json"
+                    },
+                }
+            )
             return response.data
         } catch (error) {
             throw error;
