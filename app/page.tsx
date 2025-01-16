@@ -362,7 +362,7 @@ export default function Library() {
                 <span className="font-medium">{book.book_age_limit}+</span>
               </p>
               <p className="text-gray-600">
-                Цена: <span className="font-medium">{book.book_price} ₽</span>
+                Цена: <span className="font-medium">{user?book.book_price - (book.book_price * user?.subscription_value/100):book.book_price}  ₽</span>
               </p>
               <p className="text-gray-600">
                 Адрес библиотеки: <span className="font-medium">{book.library_address}</span>
