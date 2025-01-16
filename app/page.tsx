@@ -107,7 +107,7 @@ export default function Library() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [user]);
 
   return (
     <div className="flex flex-col items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gray-100">
@@ -130,7 +130,7 @@ export default function Library() {
             </div>
           )}
           <button
-            onClick={() => setIsShow(!isShow)}
+            onClick={() => user ? setIsShow(!isShow): push("/login")}
             className="w-10 h-10 bg-blue-500 text-white font-bold rounded-full hover:bg-blue-600 transition flex items-center justify-center"
             title="Профиль"
           >
@@ -370,13 +370,15 @@ export default function Library() {
               <p className="text-gray-600">
                 Телефон библиотеки: <span className="font-medium">{book.library_phone}</span>
               </p>
-              <button
+              {user && (
+                <button
                 disabled={!user}
                 onClick={(e) => user && takeBook({ library_id: book.library_id, user_id: user?.id, book_id: book.book_id })}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition cursor-pointer"
               >
                 Приобрести
               </button>
+              )}
             </div>
           ))}
         </div>
